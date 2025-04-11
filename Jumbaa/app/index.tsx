@@ -6,8 +6,10 @@ export default function SplashScreen() {
   const router = useRouter();
   const leftImageX = useRef(new Animated.Value(-200)).current;
   const rightImageX = useRef(new Animated.Value(200)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Slide in logos first
     Animated.parallel([
       Animated.timing(leftImageX, {
         toValue: 0,
@@ -20,9 +22,17 @@ export default function SplashScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
+      // Then fade in the text
+      Animated.timing(textOpacity, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+
+      // Navigate after 1 second
       setTimeout(() => {
         router.replace('/(auth)/login');
-      }, 1000);
+      }, 1500);
     });
   }, []);
 
@@ -49,12 +59,17 @@ export default function SplashScreen() {
             ]}
           />
         </View>
-        <Text style={styles.jumbaaText}>Jumbaa</Text>
-        <Text style={styles.taglineText}>Find your dream home</Text>
+
+        {/* Animated Text Appearance */}
+        <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
+           <Text style={styles.jumbaaText}>Jumbaa</Text>
+            <Text style={styles.taglineText}>Find your dream home</Text>
+        </Animated.View>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -81,6 +96,10 @@ const styles = StyleSheet.create({
     height: 100,
     resizeMode: 'contain',
     position: 'absolute',
+  },
+  textContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   jumbaaText: {
     fontSize: 36,
