@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, Text, StyleSheet } from "react-native";
-import { db } from "@/firebase/config"; // Ensure this path is correct
+import { db } from "@/firebase/config"; 
 import { collection, addDoc } from "firebase/firestore";
 
 export default function AddHouseForm() {

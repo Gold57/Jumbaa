@@ -51,7 +51,7 @@ export default function TabLayout() {
         name="addhouse"
         options={{
           title: 'Add House',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="warehouse.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
     </Tabs>
