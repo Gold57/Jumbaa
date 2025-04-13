@@ -1,6 +1,8 @@
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebase/config';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -8,19 +10,24 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    console.log('Logging in with', email, password);
-    router.replace('/(tabs)');
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      Alert.alert("Login Failed", error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../../assets/images/logi.jpeg')} style={styles.logo} /> {/* Local image */}
+        <Image source={require('../../assets/images/logi.jpeg')} style={styles.logo} />
         <Text style={styles.headerText}>Jumbaa</Text>
       </View>
       <Text style={styles.subTitle}>Welcome Back</Text>
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+
       <View style={styles.passwordInputContainer}>
         <TextInput
           placeholder="Password"
@@ -29,13 +36,11 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           style={styles.input}
         />
-        <TouchableOpacity 
-          style={styles.passwordToggle} 
-          onPress={() => setShowPassword(!showPassword)}
-        >
+        <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowPassword(!showPassword)}>
           <Text style={styles.showHideText}>{showPassword ? 'Hide' : 'Show'}</Text>
         </TouchableOpacity>
       </View>
+
       <Button title="Login" onPress={handleLogin} />
       <Text style={styles.link} onPress={() => router.push('/(auth)/signup')}>
         Don’t have an account? Sign up
@@ -43,6 +48,7 @@ export default function LoginScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,6 +1,9 @@
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/firebase/config';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -10,37 +13,52 @@ export default function SignupScreen() {
   const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSignup = () => {
-    console.log('Signing up with', firstName, lastName, email, password);
-    router.replace('/(tabs)');
+  const handleSignup = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save extra user data to Firestore, including the default userType 'tenant'
+      await setDoc(doc(db, "users", user.uid), {
+        firstName,
+        lastName,
+        email,
+        userType: 'tenant',  // Default userType as 'tenant'
+        createdAt: new Date(),
+      });
+
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      // Enhanced error handling
+      let errorMessage = 'Signup Failed';
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = 'The email address is badly formatted.';
+          break;
+        case 'auth/email-already-in-use':
+          errorMessage = 'The email address is already in use by another account.';
+          break;
+        case 'auth/weak-password':
+          errorMessage = 'The password is too weak. It should be at least 6 characters.';
+          break;
+        default:
+          errorMessage = error.message;
+      }
+      Alert.alert("Signup Failed", errorMessage);
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../../assets/images/logi.jpeg')} style={styles.logo} /> {/* Local image */}
+        <Image source={require('../../assets/images/logi.jpeg')} style={styles.logo} />
         <Text style={styles.headerText}>Jumbaa</Text>
       </View>
-      <Text style={styles.subTitle}>Let's Get Started</Text>
       <Text style={styles.subTitle}>Create an account with us!</Text>
-      <TextInput
-        placeholder="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-      />
+      <TextInput placeholder="First Name" value={firstName} onChangeText={setFirstName} style={styles.input} />
+      <TextInput placeholder="Last Name" value={lastName} onChangeText={setLastName} style={styles.input} />
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      
       <View style={styles.passwordInputContainer}>
         <TextInput
           placeholder="Password"
@@ -49,13 +67,11 @@ export default function SignupScreen() {
           onChangeText={setPassword}
           style={styles.input}
         />
-        <TouchableOpacity 
-          style={styles.passwordToggle} 
-          onPress={() => setShowPassword(!showPassword)}
-        >
+        <TouchableOpacity style={styles.passwordToggle} onPress={() => setShowPassword(!showPassword)}>
           <Text style={styles.showHideText}>{showPassword ? 'Hide' : 'Show'}</Text>
         </TouchableOpacity>
       </View>
+
       <Button title="Sign Up" onPress={handleSignup} />
       <Text style={styles.link} onPress={() => router.push('/(auth)/login')}>
         Already have an account? Log in
