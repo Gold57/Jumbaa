@@ -3,6 +3,10 @@ import { View, Text, FlatList, StyleSheet, Image, TextInput } from "react-native
 import { collection, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
+
+
 
 interface House {
   id: string;
@@ -15,6 +19,9 @@ interface House {
 export default function Home() {
   const [houses, setHouses] = useState<House[]>([]);
   const [searchText, setSearchText] = useState("");
+  const router = useRouter();
+
+  
 
   useEffect(() => {
     const fetchHouses = async () => {
@@ -35,18 +42,18 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Jumbaa</Text>
+    <Text style={styles.title}>Jumbaa</Text>
 
-      {/* Search input */}
-      <View style={styles.searchContainer}>
-  <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search house"
-    placeholderTextColor="#888"
-    value={searchText}
-    onChangeText={setSearchText}
-  />
+    {/* Search input */}
+    <View style={styles.searchContainer}>
+    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+    <TextInput
+      style={styles.searchInput}
+      placeholder="Search house"
+      placeholderTextColor="#888"
+      value={searchText}
+      onChangeText={setSearchText}
+    />
 </View>
 
       {/* House list */}
@@ -54,14 +61,14 @@ export default function Home() {
         data={filteredHouses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: "../housedetail", params: { house: JSON.stringify(item) } })}>
             {item.imageUrl && (
               <Image source={{ uri: item.imageUrl }} style={styles.houseImage} />
             )}
             <Text style={styles.houseText}>🏠 Name: {item.name}</Text>
             <Text style={styles.houseText}>📍 Location: {item.location}</Text>
             <Text style={styles.houseText}>💰 Price: ${item.price}</Text>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
