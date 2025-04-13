@@ -32,8 +32,8 @@ export default function HouseDetail() {
       <Text style={styles.paragraph}>{parsedHouse.description}</Text>
 
       <Text style={styles.sectionTitle}>Contact</Text>
-      <Text style={styles.paragraph}>📞 {parsedHouse.contact.phone}</Text>
-      <Text style={styles.paragraph}>📞 {parsedHouse.contact.email}</Text>
+      <Text style={styles.paragraph}>📞Phone: {parsedHouse.contact.phone}</Text>
+      <Text style={styles.paragraph}>📧 Email: {parsedHouse.contact.email}</Text>
 
       {parsedHouse.images && parsedHouse.images.length > 0 && (
         <>
