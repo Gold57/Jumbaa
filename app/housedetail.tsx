@@ -8,6 +8,7 @@ interface House {
   location: string;
   price: number;
   imageUrl: string;
+  bedrooms: number;
   description: string;
   contact: string;
   images?: string[];
@@ -27,6 +28,7 @@ export default function HouseDetail() {
       <Text style={styles.title}>{parsedHouse.name}</Text>
       <Text style={styles.text}>📍 {parsedHouse.location}</Text>
       <Text style={styles.text}>💰 ${parsedHouse.price}</Text>
+      <Text style={styles.text}>🛏️ Bedrooms: {parsedHouse.bedrooms}</Text>
 
       <Text style={styles.sectionTitle}>Description</Text>
       <Text style={styles.paragraph}>{parsedHouse.description}</Text>

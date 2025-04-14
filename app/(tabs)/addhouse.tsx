@@ -8,6 +8,8 @@ export default function AddHouseForm() {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [description, setDescription] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleAddHouse = async () => {
@@ -24,6 +26,8 @@ export default function AddHouseForm() {
         location: location,
         price: parseFloat(price),
         imageUrl: imageUrl.trim(),
+        description: description,
+        bedrooms: bedrooms,
       });
 
       setName("");
@@ -65,10 +69,24 @@ export default function AddHouseForm() {
         />
         <TextInput
           style={styles.input}
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Number of Bedrooms"
+          value={bedrooms}
+          keyboardType="numeric"
+          onChangeText={setBedrooms}    
+          />
+        <TextInput
+          style={styles.input}
           placeholder="Image URL"
           value={imageUrl}
           onChangeText={setImageUrl}
         />
+        
 
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.imagePreview} />

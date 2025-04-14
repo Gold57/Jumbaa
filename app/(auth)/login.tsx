@@ -10,24 +10,22 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // const handleLogin = async () => {
-  //   try {
-  //     await signInWithEmailAndPassword(auth, email, password);
-  //     router.replace('/(tabs)/home');
-  //   } catch (error: any) {
-  //     Alert.alert("Login Failed", error.message);
-  //   }
-  // };
-
   const handleLogin = async () => {
-    router.replace('/(tabs)/home');
-  }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      Alert.alert("Login Failed", error.message);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../../assets/images/logi.jpeg')} style={styles.logo} />
         <Text style={styles.headerText}>Jumbaa</Text>
+        
       </View>
       <Text style={styles.subTitle}>Welcome Back</Text>
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />

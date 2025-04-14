@@ -41,6 +41,7 @@ export default function SignupScreen() {
         case 'auth/weak-password':
           errorMessage = 'The password is too weak. It should be at least 6 characters.';
           break;
+        
         default:
           errorMessage = error.message;
       }
