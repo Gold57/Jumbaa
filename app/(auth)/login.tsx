@@ -10,14 +10,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // const handleLogin = async () => {
+  //   try {
+  //     await signInWithEmailAndPassword(auth, email, password);
+  //     router.replace('/(tabs)/home');
+  //   } catch (error: any) {
+  //     Alert.alert("Login Failed", error.message);
+  //   }
+  // };
+
   const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/(tabs)/home');
-    } catch (error: any) {
-      Alert.alert("Login Failed", error.message);
-    }
-  };
+    router.replace('/(tabs)/home');
+  }
 
   return (
     <View style={styles.container}>
