@@ -8,12 +8,14 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Animated,
 } from "react-native";
 import { collection, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
+import { Easing } from "react-native-reanimated";
 
 interface House {
   id: string;
@@ -30,6 +32,9 @@ export default function Home() {
   const [bedroomFilter, setBedroomFilter] = useState<number | null>(null);
   const [showBedroomOptions, setShowBedroomOptions] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownHeight] = useState(new Animated.Value(0));
   const router = useRouter();
 
   useEffect(() => {
@@ -49,13 +54,12 @@ export default function Home() {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
-        // You can use user.displayName or fallback to email
         setUserName(user.displayName || user.email || "User");
       } else {
         setUserName(null);
       }
     });
-  
+
     return () => unsubscribe();
   }, []);
 
@@ -68,19 +72,100 @@ export default function Home() {
     return matchesSearch && matchesBedroom;
   });
 
+  const toggleDropdown = () => {
+    setShowDropdown((prev) => !prev);
+
+    Animated.timing(dropdownHeight, {
+      toValue: showDropdown ? 0 : 100, // Adjust the value based on your menu height
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleLogout = () => {
+    const auth = getAuth();
+    signOut(auth)
+      .then(() => {
+        // Handle successful logout, navigate to login screen, etc.
+        router.push("/login");
+      })
+      .catch((error) => {
+        console.error("Error during logout:", error);
+      });
+  };
+
   const bedroomOptions = [1, 2, 3, 4, 5];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Jumbaa</Text>
-      <TouchableOpacity style={styles.profileCard} onPress={() => router.push('/profile')}>
-        <Ionicons name="person-circle-outline" size={40} color="#007AFF" />
-      </TouchableOpacity>
+
+      {/* Profile and Menu Row */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => setShowMenu(!showMenu)}
+          style={styles.menuButton}
+        >
+          <Ionicons name="menu" size={32} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Jumbaa</Text>
+
+        <TouchableOpacity
+          style={styles.profileCard}
+          onPress={toggleDropdown}
+        >
+          <Ionicons name="person-circle-outline" size={40} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Hamburger Menu Dropdown */}
+      {showMenu && (
+        <View style={[styles.dropdown, styles.menuDropdown]}>
+          <TouchableOpacity
+            onPress={() => {
+              setShowMenu(false);
+              router.push("/about");
+            }}
+          >
+            <Text style={styles.dropdownText}>About</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setShowMenu(false);
+              router.push("/help");
+            }}
+          >
+            <Text style={styles.dropdownText}>Help</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Animated Dropdown for Profile */}
+      {showDropdown && (
+        <Animated.View
+          style={[
+            styles.dropdown,
+            {
+              height: dropdownHeight,
+              overflow: "hidden", // Hide the menu when it's collapsed
+            },
+            styles.profileDropdown, // Added custom style for profile dropdown
+          ]}
+        >
+          <TouchableOpacity onPress={() => { router.push("/profile"); setShowDropdown(false); }}>
+            <Text style={styles.dropdownText}>View Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout}>
+            <Text style={styles.dropdownText}>Logout</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+
       {userName && (
-  <Text style={styles.greetingText}>Hi, {userName} 👋</Text>
-)}
+        <Text style={styles.greetingText}>Hi, {userName} 👋</Text>
+      )}
+
       <Text style={styles.subtitle}>Find your dream house!</Text>
-      
 
       {/* Search input */}
       <View style={styles.searchContainer}>
@@ -184,11 +269,11 @@ const styles = StyleSheet.create({
     color: "#000",
     textAlign: "center",
   },
-  subtitle:{
+  subtitle: {
     fontSize: 18,
     color: "#000",
     textAlign: "center",
-    fontWeight: "semibold",
+    fontWeight: "600",
     marginBottom: 10,
   },
   card: {
@@ -222,7 +307,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 3,
-    paddingHorizontal: 15, 
+    paddingHorizontal: 15,
   },
   searchIcon: {
     marginRight: 8,
@@ -270,19 +355,15 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   profileCard: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 25,
     backgroundColor: "#E3F2FD",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 1,
     marginRight: 12,
     marginTop: 10,
-    marginBottom:10,
+    marginBottom: 10,
   },
   greetingText: {
     fontSize: 18,
@@ -291,5 +372,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
-  
+  menuButton: {
+    position: "relative",
+    marginRight: 10,
+    marginTop: 10,
+  },
+  dropdown: {
+    position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 3,
+  },
+  profileDropdown: {
+    top: 80,  // Position the profile dropdown beneath the profile card
+    right: 10,
+  },
+  menuDropdown: {
+    top: 70,  // Position the menu dropdown beneath the hamburger icon
+    left: 10,
+  },
+  dropdownText: {
+    fontSize: 16,
+    paddingVertical: 5,
+    color: "#007AFF",
+  },
 });

@@ -98,17 +98,23 @@ export default function HouseDetail() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.text}>📍 {parsedHouse.location}</Text>
-      <Text style={styles.text}>💰 ${parsedHouse.price}</Text>
-      <Text style={styles.text}>🛏️ Bedrooms: {parsedHouse.bedrooms}</Text>
+      <View style={styles.infoBox}>
+  <Text style={styles.infoItem}>📍 {parsedHouse.location}</Text>
+  <Text style={styles.infoItem}>💰 ${parsedHouse.price}</Text>
+  <Text style={styles.infoItem}>🛏️ {parsedHouse.bedrooms} Bedrooms</Text>
+</View>
 
-      <Text style={styles.sectionTitle}>Description</Text>
-      <Text style={styles.paragraph}>{parsedHouse.description}</Text>
 
+      <View style={styles.infoCard}>
+  <Text style={styles.sectionTitle}>Description</Text>
+  <Text style={styles.paragraph}>{parsedHouse.description}</Text>
+</View>
+
+<View style={styles.infoCard}>
       <Text style={styles.sectionTitle}>Contact</Text>
       <Text style={styles.paragraph}>📞 Phone: {parsedHouse.contact.phone}</Text>
       <Text style={styles.paragraph}>📧 Email: {parsedHouse.contact.email}</Text>
-
+</View>
       {parsedHouse.images && parsedHouse.images.length > 0 && (
         <>
           <Text style={styles.sectionTitle}>More Images</Text>
@@ -124,45 +130,84 @@ export default function HouseDetail() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
     flex: 1,
   },
   mainImage: {
     width: "100%",
     height: 250,
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#003366",
+    color: "#1a2e35",
+    flex: 1,
+    flexWrap: "wrap",
+    marginRight: 10,
   },
   text: {
     fontSize: 16,
-    marginBottom: 4,
+    marginBottom: 6,
+    color: "#444",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    marginTop: 16,
-    marginBottom: 6,
-    color: "#003366",
+    marginTop: 24,
+    marginBottom: 8,
+    color: "#1a2e35",
   },
   paragraph: {
     fontSize: 15,
-    color: "#444",
-    marginBottom: 12,
+    color: "#555",
+    lineHeight: 22,
+    marginBottom: 14,
   },
   additionalImage: {
     width: "100%",
     height: 200,
-    borderRadius: 10,
-    marginTop: 10,
+    borderRadius: 12,
+    marginTop: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 3,
   },
+  infoCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 2,
+    marginBottom: 20,
+  },
+  infoBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#e6f0fa", // light bluish
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 16,
+  },
+  infoItem: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#003366", // deep blue for contrast
+    flex: 1,
+    textAlign: "center",
+  },
+  
 });
