@@ -19,7 +19,7 @@ export default function Help() {
       {/* Navigation Tips */}
       <Text style={styles.sectionTitle}>Navigation Tips</Text>
       <View style={styles.card}>
-        <Text style={styles.a}>Use the bottom tabs to quickly access Home, Favorites, and your Profile.</Text>
+        <Text style={styles.a}>Use the bottom tabs to quickly access Home and Favorites</Text>
         <Text style={styles.a}>Tap the back arrow at the top to return to the previous screen.</Text>
       </View>
 
@@ -29,7 +29,7 @@ export default function Help() {
         <Text style={styles.a}>🔍 Browse available houses on the Home screen.</Text>
         <Text style={styles.a}>❤️ Tap the heart icon to save houses to your favorites.</Text>
         <Text style={styles.a}>📄 Tap on a listing to view full details, images, and contact info.</Text>
-        <Text style={styles.a}>👤 Use the Profile tab to update your details or log out.</Text>
+        <Text style={styles.a}>👤 Use the Profile tab to update your details.</Text>
       </View>
 
       {/* Contact Info */}
