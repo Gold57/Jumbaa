@@ -52,7 +52,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="addhouse"
         options={{
           title: 'Add House',
@@ -60,7 +60,7 @@ export default function TabLayout() {
             <IconSymbol size={24} name="house.fill" color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
   name="favorites"
   options={{

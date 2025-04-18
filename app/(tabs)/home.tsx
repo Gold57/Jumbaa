@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { collection, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "@/firebase/config";
@@ -16,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
 import { Easing } from "react-native-reanimated";
+import * as Location from "expo-location";
 
 interface House {
   id: string;
@@ -24,6 +27,8 @@ interface House {
   price: number;
   imageUrl: string;
   bedrooms: number;
+  latitude: number;
+  longitude: number;
 }
 
 export default function Home() {
@@ -35,6 +40,9 @@ export default function Home() {
   const [showMenu, setShowMenu] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownHeight] = useState(new Animated.Value(0));
+  const [userLocation, setUserLocation] = useState<Location.LocationObjectCoords | null>(null);
+  const [nearbyHouses, setNearbyHouses] = useState<House[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,6 +70,80 @@ export default function Home() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const fetchLocationAndHouses = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permission Denied", "Location permission is required to show houses near you.");
+          setLoading(false);
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+        setUserLocation(location.coords);
+
+        const querySnapshot = await getDocs(collection(db, "houses"));
+        const houses: House[] = [];
+
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.latitude && data.longitude) {
+            houses.push({
+              id: docSnap.id,
+              ...data,
+            } as House);
+          }
+        });
+
+        // Filter nearby houses (within 10km radius)
+        const filtered = houses.filter((house) => {
+          const dist = getDistance(
+            location.coords.latitude,
+            location.coords.longitude,
+            house.latitude,
+            house.longitude
+          );
+          return dist <= 10; // 10 km radius
+        });
+
+        setNearbyHouses(filtered);
+      } catch (error) {
+        console.error("Error fetching houses or location:", error);
+        Alert.alert("Error", "Failed to load houses.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocationAndHouses();
+  }, []);
+
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371; // Earth radius in km
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#003366" />
+        <Text style={styles.loaderText}>Loading houses near you...</Text>
+      </View>
+    );
+  }
 
   const filteredHouses = houses.filter((house) => {
     const matchesSearch = house.name
@@ -227,31 +309,70 @@ export default function Home() {
           </ScrollView>
         </View>
       )}
-
-      {/* House list */}
       <FlatList
-        data={filteredHouses}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() =>
-              router.push({
-                pathname: "../housedetail",
-                params: { house: JSON.stringify(item) },
-              })
-            }
-          >
-            {item.imageUrl && (
-              <Image source={{ uri: item.imageUrl }} style={styles.houseImage} />
-            )}
-            <Text style={styles.houseText}>🏠 Name: {item.name}</Text>
-            <Text style={styles.houseText}>📍 Location: {item.location}</Text>
-            <Text style={styles.houseText}>💰 Price: ${item.price}</Text>
-            <Text style={styles.houseText}>🛏️ Bedrooms: {item.bedrooms}</Text>
-          </TouchableOpacity>
-        )}
-      />
+  data={filteredHouses}
+  keyExtractor={(item) => item.id}
+  ListHeaderComponent={
+    <>
+      <Text style={styles.heading}>Houses Near You</Text>
+      {nearbyHouses.length === 0 ? (
+        <Text style={styles.noHouses}>No houses found near your current location.</Text>
+      ) : (
+        <FlatList
+          data={nearbyHouses}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[styles.card, styles.horizontalCard]}
+              onPress={() =>
+                router.push({
+                  pathname: "../housedetail",
+                  params: { house: JSON.stringify(item) },
+                })
+              }
+            >
+              {item.imageUrl && (
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.nearbyImage}
+                />
+              )}
+              <Text style={styles.houseText}>🏠 {item.name}</Text>
+              <Text style={styles.houseText}>📍 {item.location}</Text>
+              <Text style={styles.houseText}>💰 ${item.price}</Text>
+              <Text style={styles.houseText}>🛏️ {item.bedrooms}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+      <Text style={styles.heading}>All Houses</Text>
+    </>
+  }  
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        router.push({
+          pathname: "../housedetail",
+          params: { house: JSON.stringify(item) },
+        })
+      }
+    >
+      {item.imageUrl && (
+        <Image source={{ uri: item.imageUrl }} style={styles.houseImage} />
+      )}
+      <Text style={styles.houseText}>🏠 Name: {item.name}</Text>
+      <Text style={styles.houseText}>📍 Location: {item.location}</Text>
+      <Text style={styles.houseText}>💰 Price: ${item.price}</Text>
+      <Text style={styles.houseText}>🛏️ Bedrooms: {item.bedrooms}</Text>
+    </TouchableOpacity>
+  )}
+/>
+
+                
     </View>
   );
 }
@@ -402,4 +523,49 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     color: "#007AFF",
   },
+  noHouses: {
+    fontSize: 16,
+    color: "#999",
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#002244",
+  },
+  location: {
+    fontSize: 16,
+    marginTop: 4,
+  },
+  details: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+  },
+  loaderText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#555",
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#003366",
+    marginBottom: 16,
+  },
+  horizontalCard: {
+    width: 250,
+    marginRight: 10,
+  },
+  nearbyImage: {
+    width: "100%",
+    height: 120,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+
 });

@@ -33,7 +33,14 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow the app to access your location.",
+          "locationWhenInUsePermission": "Allow the app to access your location while using the app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
