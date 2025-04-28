@@ -310,7 +310,7 @@ export default function Home() {
         </View>
       )}
       <FlatList
-  data={filteredHouses}
+          data={filteredHouses}
   keyExtractor={(item) => item.id}
   ListHeaderComponent={
     <>
